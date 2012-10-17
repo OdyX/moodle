@@ -29,6 +29,12 @@
 function cron_run() {
     global $DB, $CFG, $OUTPUT;
 
+    if( ($cron_lock_p = @fopen($CFG->dataroot."/cron_run.lock", "w+") ) === false || !flock($cron_lock_p, LOCK_EX | LOCK_NB )) {
+        echo "Another cron is probably running, cron execution suspended (couldn't acquire the exclusive cron lock).\n";
+        @fclose($cron_lock_p);
+        exit(1);
+    }
+
     if (CLI_MAINTENANCE) {
         echo "CLI maintenance mode active, cron execution suspended.\n";
         exit(1);
@@ -470,6 +476,10 @@ function cron_run() {
 
     $difftime = microtime_diff($starttime, microtime());
     mtrace("Execution took ".$difftime." seconds");
+
+    // Release the cron lock
+    flock($cron_lock_p, LOCK_UN);
+    fclose($cron_lock_p);
 }
 
 /**
