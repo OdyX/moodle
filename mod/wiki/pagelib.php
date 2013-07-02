@@ -2191,8 +2191,6 @@ class page_wiki_prettyview extends page_wiki {
         $version = wiki_get_current_version($this->page->id);
 
         $content = wiki_parse_content($version->contentformat, $version->content, array('printable' => true, 'swid' => $this->subwiki->id, 'pageid' => $this->page->id, 'pretty_print' => true));
-
-        echo '<div id="wiki_printable_content">';
         echo format_text($content['parsed_text'], FORMAT_HTML);
         echo '</div>';
     }
