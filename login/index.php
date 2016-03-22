@@ -368,122 +368,38 @@ if (isloggedin() and !isguestuser()) {
     echo $OUTPUT->confirm(get_string('alreadyloggedin', 'error', fullname($USER)), $logout, $continue);
     echo $OUTPUT->box_end();
 } else {
-    // Was "include index_form.php"
     if ($show_instructions) {
         $columns = 'twocolumns';
     } else {
         $columns = 'onecolumn';
     }
 
-    if (!empty($CFG->loginpasswordautocomplete)) {
-        $autocomplete = 'autocomplete="off"';
-    } else {
-        $autocomplete = '';
-    }
-    if (empty($CFG->authloginviaemail)) {
-        $strusername = get_string('username');
-    } else {
-        $strusername = get_string('usernameemail');
-    }
+    // Prepare all objects needed for the login page mustache template.
     $data = new stdClass;
     $data->columns = $columns;
-    // _ for boolean
     $data->_signuplink = ($CFG->registerauth == 'email') || !empty($CFG->registerauth);
     $data->errormsg = $errormsg;
     $data->errormsg_error_text = $OUTPUT->error_text($errormsg);
+    $data->httpswwwroot = $CFG->httpswwwroot;
+    $data->_loginpasswordautocomplete_empty = empty($CFG->loginpasswordautocomplete);
+    $data->_authloginviaemail_empty = empty($CFG->authloginviaemail);
+    $data->frm_username = p($frm->username);
+    $data->_rememberusername = (isset($CFG->rememberusername) and $CFG->rememberusername == 2);
+    $data->cookiesenabled_help_icon = $OUTPUT->help_icon('cookiesenabled');
+    $data->_guestloginbutton = $CFG->guestloginbutton and !isguestuser();
+    $data->_show_instructions = $show_instructions;
+    $data->_no_auth_enabled = is_enabled_auth('none');
+    $data->_registerauth_is_email = ($CFG->registerauth == 'email');
+    $data->_registerauth_not_empty = !empty($CFG->registerauth);
+    $data->_potentialidps_not_empty = !empty($potentialidps);
+    $data->potentialidps = $potentialidps;
+    $data->potentialidps = array();
+    foreach($potentialidps as $idp) {
+        $data->potentialidps[] = html_writer::link($idp['url']->out(), $OUTPUT->render($idp['icon'], $idp['name']) . $idp['name'], array('title' => $idp['name']));
+    }
+
     echo $OUTPUT->render_from_template('core/login', $data);
 
-            ?>
-            <form action="<?php echo $CFG->httpswwwroot; ?>/login/index.php" method="post" id="login" <?php echo $autocomplete; ?> >
-            <div class="loginform">
-                <div class="form-label"><label for="username"><?php echo($strusername) ?></label></div>
-                <div class="form-input">
-                <input type="text" name="username" id="username" size="15" value="<?php p($frm->username) ?>" />
-                </div>
-                <div class="clearer"><!-- --></div>
-                <div class="form-label"><label for="password"><?php print_string("password") ?></label></div>
-                <div class="form-input">
-                <input type="password" name="password" id="password" size="15" value="" <?php echo $autocomplete; ?> />
-                </div>
-            </div>
-                <div class="clearer"><!-- --></div>
-                <?php if (isset($CFG->rememberusername) and $CFG->rememberusername == 2) { ?>
-                <div class="rememberpass">
-                    <input type="checkbox" name="rememberusername" id="rememberusername" value="1" <?php if ($frm->username) {echo 'checked="checked"';} ?> />
-                    <label for="rememberusername"><?php print_string('rememberusername', 'admin') ?></label>
-                </div>
-                <?php } ?>
-            <div class="clearer"><!-- --></div>
-            <input id="anchor" type="hidden" name="anchor" value="" />
-            <script>document.getElementById('anchor').value = location.hash</script>
-            <input type="submit" id="loginbtn" value="<?php print_string("login") ?>" />
-            <div class="forgetpass"><a href="forgot_password.php"><?php print_string("forgotten") ?></a></div>
-            </form>
-            <div class="desc">
-                <?php
-                    echo get_string("cookiesenabled");
-                    echo $OUTPUT->help_icon('cookiesenabled');
-                ?>
-            </div>
-        </div>
-
-    <?php if ($CFG->guestloginbutton and !isguestuser()) {  ?>
-        <div class="subcontent guestsub">
-            <div class="desc">
-            <?php print_string("someallowguest") ?>
-            </div>
-            <form action="index.php" method="post" id="guestlogin">
-            <div class="guestform">
-                <input type="hidden" name="username" value="guest" />
-                <input type="hidden" name="password" value="guest" />
-                <input type="submit" value="<?php print_string("loginguest") ?>" />
-            </div>
-            </form>
-        </div>
-    <?php } ?>
-        </div>
-    <?php if ($show_instructions) { ?>
-        <div class="signuppanel">
-        <h2><?php print_string("firsttime") ?></h2>
-        <div class="subcontent">
-    <?php     if (is_enabled_auth('none')) { // instructions override the rest for security reasons
-                print_string("loginstepsnone");
-            } else if ($CFG->registerauth == 'email') {
-                if (!empty($CFG->auth_instructions)) {
-                    echo format_text($CFG->auth_instructions);
-                } else {
-                    print_string("loginsteps", "", "signup.php");
-                } ?>
-                    <div class="signupform">
-                    <form action="signup.php" method="get" id="signup">
-                    <div><input type="submit" value="<?php print_string("startsignup") ?>" /></div>
-                    </form>
-                    </div>
-    <?php     } else if (!empty($CFG->registerauth)) {
-                echo format_text($CFG->auth_instructions); ?>
-                <div class="signupform">
-                    <form action="signup.php" method="get" id="signup">
-                    <div><input type="submit" value="<?php print_string("startsignup") ?>" /></div>
-                    </form>
-                </div>
-    <?php     } else {
-                echo format_text($CFG->auth_instructions);
-            } ?>
-        </div>
-        </div>
-    <?php } ?>
-    <?php if (!empty($potentialidps)) { ?>
-        <div class="subcontent potentialidps">
-            <h6><?php print_string('potentialidps', 'auth'); ?></h6>
-            <div class="potentialidplist">
-    <?php foreach ($potentialidps as $idp) {
-        echo  '<div class="potentialidp"><a href="' . $idp['url']->out() . '" title="' . $idp['name'] . '">' . $OUTPUT->render($idp['icon'], $idp['name']) . $idp['name'] . '</a></div>';
-    } ?>
-            </div>
-        </div>
-    <?php } ?>
-    </div>
-    <?php
     if ($errormsg) {
         $PAGE->requires->js_init_call('M.util.focus_login_error', null, true);
     } else if (!empty($CFG->loginpageautofocus)) {
