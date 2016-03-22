@@ -1,0 +1,20 @@
+<div class="loginbox clearfix {{columns}}">
+    <div class="loginpanel">
+        {{#_signuplink}}
+            <div class="skiplinks">
+                <a class="skip" href="signup.php">{{#str}} tocreatenewaccount {{/str}}</a>
+            </div>
+        {{/_signuplink}}
+        <h2>{{#str}} login {{/str}}</h2>
+        <div class="subcontent loginsub">
+            {{#errormsg}}
+                <div class="loginerrors">
+                    <a href="#" id="loginerrormessage", class="accesshide">{{errormsg}}</a>
+                    {{{errormsg_error_text}}}
+                </div>
+            {{/errormsg}}
+<!--
+        </div>
+    </div>
+</div>
+-->

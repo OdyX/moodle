@@ -385,23 +385,14 @@ if (isloggedin() and !isguestuser()) {
     } else {
         $strusername = get_string('usernameemail');
     }
-    ?>
-    <div class="loginbox clearfix <?php echo $columns ?>">
-    <div class="loginpanel">
-    <?php
-    if (($CFG->registerauth == 'email') || !empty($CFG->registerauth)) { ?>
-        <div class="skiplinks"><a class="skip" href="signup.php"><?php print_string("tocreatenewaccount"); ?></a></div>
-    <?php
-    } ?>
-        <h2><?php print_string("login") ?></h2>
-        <div class="subcontent loginsub">
-            <?php
-            if (!empty($errormsg)) {
-                echo html_writer::start_tag('div', array('class' => 'loginerrors'));
-                echo html_writer::link('#', $errormsg, array('id' => 'loginerrormessage', 'class' => 'accesshide'));
-                echo $OUTPUT->error_text($errormsg);
-                echo html_writer::end_tag('div');
-            }
+    $data = new stdClass;
+    $data->columns = $columns;
+    // _ for boolean
+    $data->_signuplink = ($CFG->registerauth == 'email') || !empty($CFG->registerauth);
+    $data->errormsg = $errormsg;
+    $data->errormsg_error_text = $OUTPUT->error_text($errormsg);
+    echo $OUTPUT->render_from_template('core/login', $data);
+
             ?>
             <form action="<?php echo $CFG->httpswwwroot; ?>/login/index.php" method="post" id="login" <?php echo $autocomplete; ?> >
             <div class="loginform">
