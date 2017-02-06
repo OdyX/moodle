@@ -621,7 +621,7 @@ function is_dataroot_insecure($fetchtest=false) {
  * Enables CLI maintenance mode by creating new dataroot/climaintenance.html file.
  */
 function enable_cli_maintenance_mode() {
-    global $CFG;
+    global $CFG, $OUTPUT;
 
     if (file_exists("$CFG->dataroot/climaintenance.html")) {
         unlink("$CFG->dataroot/climaintenance.html");
@@ -630,13 +630,18 @@ function enable_cli_maintenance_mode() {
     if (file_exists("$CFG->dataroot/climaintenance.template.html")) {
         $data = file_get_contents("$CFG->dataroot/climaintenance.template.html");
     } else {
-        if (isset($CFG->maintenance_message) and !html_is_blank($CFG->maintenance_message)) {
-            $data = $CFG->maintenance_message;
-        } else {
-            $data = get_string('sitemaintenance', 'admin');
+        $templatecontext = array();
+        $templatecontext['title'] = get_string('sitemaintenance', 'admin');
+        $templatecontext['htmllang'] = '';
+        if (function_exists('get_string') && function_exists('get_html_lang')) {
+            $templatecontext['htmllang'] = get_html_lang();
         }
-        $data = bootstrap_renderer::early_error_content($data, null, null, null);
-        $data = bootstrap_renderer::plain_page(get_string('sitemaintenance', 'admin'), $data);
+        if (isset($CFG->maintenance_message) and !html_is_blank($CFG->maintenance_message)) {
+            $templatecontext['maintenance_message'] = $CFG->maintenance_message;
+        } else {
+            $templatecontext['maintenance_message'] = get_string('sitemaintenance', 'admin');
+        }
+        $data = $OUTPUT->render_from_template('core/climaintenance', $templatecontext);
     }
 
     file_put_contents("$CFG->dataroot/climaintenance.html", $data);
