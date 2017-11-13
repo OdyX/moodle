@@ -56,6 +56,9 @@ class MoodleQuickForm_filemanager extends HTML_QuickForm_element implements temp
     protected $_options = array('mainfile' => '', 'subdirs' => 1, 'maxbytes' => -1, 'maxfiles' => -1,
             'accepted_types' => '*', 'return_types' =>  null, 'areamaxbytes' => FILE_AREA_MAX_BYTES_UNLIMITED);
 
+    /** @var Moodle context for that filemanager */
+    protected $context;
+
     /**
      * Constructor
      *
@@ -73,6 +76,10 @@ class MoodleQuickForm_filemanager extends HTML_QuickForm_element implements temp
             if (array_key_exists($name, $this->_options)) {
                 $this->_options[$name] = $value;
             }
+        }
+        $this->context = $PAGE->context;
+        if (!empty($options['context'])) {
+            $this->context = $options['context'];
         }
         if (!empty($options['maxbytes'])) {
             $this->_options['maxbytes'] = get_user_max_upload_file_size($PAGE->context, $CFG->maxbytes, $options['maxbytes']);
@@ -164,7 +171,7 @@ class MoodleQuickForm_filemanager extends HTML_QuickForm_element implements temp
      */
     function setMaxbytes($maxbytes) {
         global $CFG, $PAGE;
-        $this->_options['maxbytes'] = get_user_max_upload_file_size($PAGE->context, $CFG->maxbytes, $maxbytes);
+        $this->_options['maxbytes'] = get_user_max_upload_file_size($this->context, $CFG->maxbytes, $maxbytes);
     }
 
     /**
@@ -288,7 +295,7 @@ class MoodleQuickForm_filemanager extends HTML_QuickForm_element implements temp
         $options->target    = $id;
         $options->accepted_types = $accepted_types;
         $options->return_types = $this->_options['return_types'];
-        $options->context = $PAGE->context;
+        $options->context = $this->context;
         $options->areamaxbytes = $this->_options['areamaxbytes'];
 
         $html = $this->_getTabs();
@@ -479,7 +486,7 @@ class form_filemanager implements renderable {
             'maxbytes'=>$this->options->maxbytes,
             'areamaxbytes' => $this->options->areamaxbytes,
             'maxfiles'=>$this->options->maxfiles,
-            'ctx_id'=>$PAGE->context->id, // TODO ?
+            'ctx_id'=>$this->options->context->id,
             'course'=>$PAGE->course->id, // TODO ?
             'sesskey'=>sesskey(),
             ));
