@@ -122,83 +122,11 @@ WSDL;
 
 function LogoutNotification($SessionID){
 
-    global $CFG, $SESSION, $DB;
+    global $USER;
 
-    // Delete session of user using $SessionID
-    if(empty($CFG->dbsessions)) {
-
-        // File session
-        $dir = $CFG->dataroot .'/sessions';
-        if (is_dir($dir)) {
-            if ($dh = opendir($dir)) {
-                // Read all session files
-                while (($file = readdir($dh)) !== false) {
-                    // Check if it is a file
-                    if (is_file($dir.'/'.$file)){
-                        $session_key = preg_replace('/sess_/', '', $file);
-
-                        // Read session file data
-                        $data = file($dir.'/'.$file);
-                        if (isset($data[0])){
-                            $user_session = unserializesession($data[0]);
-
-                            // Check if we have found session that shall be deleted
-                            if (isset($user_session['SESSION']) && isset($user_session['SESSION']->shibboleth_session_id)){
-
-                                // If there is a match, delete file
-                                if ($user_session['SESSION']->shibboleth_session_id == $SessionID){
-                                    // Delete session file
-                                    if (!unlink($dir.'/'.$file)){
-                                        return new SoapFault('LogoutError', 'Could not delete Moodle session file.');
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                closedir($dh);
-            }
-        }
-    } else {
-        // DB Session
-        //TODO: this needs to be rewritten to use new session stuff
-        if (!empty($CFG->sessiontimeout)) {
-            $ADODB_SESS_LIFE   = $CFG->sessiontimeout;
-        }
-
-            if ($user_session_data = $DB->get_records_sql('SELECT sesskey, sessdata FROM {sessions2} WHERE expiry > NOW()')) {
-            foreach ($user_session_data as $session_data) {
-
-                // Get user session
-                $user_session = adodb_unserialize( urldecode($session_data->sessdata) );
-
-                if (isset($user_session['SESSION']) && isset($user_session['SESSION']->shibboleth_session_id)){
-
-                    // If there is a match, delete file
-                    if ($user_session['SESSION']->shibboleth_session_id == $SessionID){
-                        // Delete this session entry
-                        if (ADODB_Session::destroy($session_data->sesskey) !== true){
-                            return new SoapFault('LogoutError', 'Could not delete Moodle session entry in database.');
-                        }
-                    }
-                }
-            }
-        }
-    }
+    \core\session\manager::kill_user_sessions($USER->id);
 
     // If now SoapFault was thrown the function will return OK as the SP assumes
-
 }
 
 /*****************************************************************************/
-
-// Same function as in adodb, but cannot be used for file session for some reason...
-function unserializesession($serialized_string) {
-    $variables = array();
-    $a = preg_split("/(\w+)\|/", $serialized_string, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
-    $counta = count($a);
-    for ($i = 0; $i < $counta; $i = $i+2) {
-            $variables[$a[$i]] = unserialize($a[$i+1]);
-    }
-    return $variables;
-}
