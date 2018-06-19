@@ -120,11 +120,11 @@ WSDL;
 }
 /******************************************************************************/
 
-function LogoutNotification($SessionID){
+function LogoutNotification($spsessionid){
 
     global $CFG, $SESSION, $DB;
 
-    // Delete session of user using $SessionID
+    // Delete session of user using $spsessionid
     if(empty($CFG->dbsessions)) {
 
         // File session
@@ -146,7 +146,7 @@ function LogoutNotification($SessionID){
                             if (isset($user_session['SESSION']) && isset($user_session['SESSION']->shibboleth_session_id)){
 
                                 // If there is a match, delete file
-                                if ($user_session['SESSION']->shibboleth_session_id == $SessionID){
+                                if ($user_session['SESSION']->shibboleth_session_id == $spsessionid){
                                     // Delete session file
                                     if (!unlink($dir.'/'.$file)){
                                         return new SoapFault('LogoutError', 'Could not delete Moodle session file.');
@@ -175,7 +175,7 @@ function LogoutNotification($SessionID){
                 if (isset($user_session['SESSION']) && isset($user_session['SESSION']->shibboleth_session_id)){
 
                     // If there is a match, delete file
-                    if ($user_session['SESSION']->shibboleth_session_id == $SessionID){
+                    if ($user_session['SESSION']->shibboleth_session_id == $spsessionid){
                         // Delete this session entry
                         if (ADODB_Session::destroy($session_data->sesskey) !== true){
                             return new SoapFault('LogoutError', 'Could not delete Moodle session entry in database.');
