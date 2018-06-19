@@ -160,34 +160,25 @@ function LogoutNotification($spsessionid){
             }
         }
     } else {
-        // DB Session
-        //TODO: this needs to be rewritten to use new session stuff
-        if (!empty($CFG->sessiontimeout)) {
-            $ADODB_SESS_LIFE   = $CFG->sessiontimeout;
-        }
-
-            if ($user_session_data = $DB->get_records_sql('SELECT sesskey, sessdata FROM {sessions2} WHERE expiry > NOW()')) {
-            foreach ($user_session_data as $session_data) {
-
-                // Get user session
-                $user_session = adodb_unserialize( urldecode($session_data->sessdata) );
-
-                if (isset($user_session['SESSION']) && isset($user_session['SESSION']->shibboleth_session_id)){
-
-                    // If there is a match, delete file
-                    if ($user_session['SESSION']->shibboleth_session_id == $spsessionid){
-                        // Delete this session entry
-                        if (ADODB_Session::destroy($session_data->sesskey) !== true){
-                            return new SoapFault('LogoutError', 'Could not delete Moodle session entry in database.');
-                        }
+        // DB Sessions.
+        $sessions = $DB->get_records_sql(
+            'SELECT userid, sessdata FROM {sessions} WHERE timemodified > ?',
+            array(time() - $CFG->sessiontimeout)
+        );
+        foreach ($sessions as $session) {
+            // Get user session from DB.
+            if (session_decode(base64_decode($session->sessdata))) {
+                if (isset($_SESSION['SESSION']) && isset($_SESSION['SESSION']->shibboleth_session_id)) {
+                    // If there is a match, kill the session.
+                    if ($_SESSION['SESSION']->shibboleth_session_id == trim($spsessionid)) {
+                        // Delete this user's sessions.
+                        \core\session\manager::kill_user_sessions($session->userid);
                     }
                 }
             }
         }
     }
-
-    // If now SoapFault was thrown the function will return OK as the SP assumes
-
+    // If no SoapFault was thrown, the function will return OK as the SP assumes.
 }
 
 /*****************************************************************************/
