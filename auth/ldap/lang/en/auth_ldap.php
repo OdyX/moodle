@@ -160,6 +160,7 @@ $string['userentriestoadd'] = "User entries to be added: {\$a}\n";
 $string['userentriestoremove'] = "User entries to be removed: {\$a}\n";
 $string['userentriestorevive'] = "User entries to be revived: {\$a}\n";
 $string['userentriestoupdate'] = "User entries to be updated: {\$a}\n";
+$string['userentrynotfound'] = "User '{\$a}' not found in LDAP\n";
 $string['usernotfound'] = 'User not found in LDAP';
 $string['useracctctrlerror'] = 'Error getting userAccountControl for {$a}';
 

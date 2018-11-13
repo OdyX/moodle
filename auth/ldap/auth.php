@@ -891,7 +891,13 @@ class auth_plugin_ldap extends auth_plugin_base {
 
             $transaction = $DB->start_delegated_transaction();
             foreach ($add_users as $user) {
-                $user = $this->get_userinfo_asobj($user->username);
+                $username = $user->username;
+                $user = $this->get_userinfo_asobj($username);
+
+                if ($user === false) {
+                    print_string('userentrynotfound', 'auth_ldap', $username);
+                    continue;
+                }
 
                 // Prep a few params
                 $user->modified   = time();
