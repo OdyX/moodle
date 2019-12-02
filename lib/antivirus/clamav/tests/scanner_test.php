@@ -44,8 +44,8 @@ class antivirus_clamav_scanner_testcase extends advanced_testcase {
 
     public function test_scan_file_not_exists() {
         $antivirus = $this->getMockBuilder('\antivirus_clamav\scanner')
-                ->setMethods(array('scan_file_execute_commandline', 'message_admins'))
-                ->getMock();
+            ->setMethods(array('scan_file_execute_commandline', 'message_admins'))
+            ->getMock();
 
         // Test specifying file that does not exist.
         $nonexistingfile = $this->tempfile . '_';
@@ -63,8 +63,8 @@ class antivirus_clamav_scanner_testcase extends advanced_testcase {
             'get_config',
         );
         $antivirus = $this->getMockBuilder('\antivirus_clamav\scanner')
-                ->setMethods($methods)
-                ->getMock();
+            ->setMethods($methods)
+            ->getMock();
         // Initiate mock scanning with configuration setting to use commandline.
         $configmap = array(array('runningmethod', 'commandline'));
         $antivirus->method('get_config')->will($this->returnValueMap($configmap));
@@ -97,8 +97,8 @@ class antivirus_clamav_scanner_testcase extends advanced_testcase {
             'get_config',
         );
         $antivirus = $this->getMockBuilder('\antivirus_clamav\scanner')
-                ->setMethods($methods)
-                ->getMock();
+            ->setMethods($methods)
+            ->getMock();
         // Initiate mock scanning with configuration setting to use commandline.
         $configmap = array(array('runningmethod', 'commandline'));
         $antivirus->method('get_config')->will($this->returnValueMap($configmap));
@@ -132,8 +132,8 @@ class antivirus_clamav_scanner_testcase extends advanced_testcase {
             'get_scanning_notice',
         );
         $antivirus = $this->getMockBuilder('\antivirus_clamav\scanner')
-                ->setMethods($methods)
-                ->getMock();
+            ->setMethods($methods)
+            ->getMock();
 
         // Configure scan_file_execute_commandline and scan_file_execute_unixsocket
         // method stubs to behave as if there is a scanning error (SCAN_RESULT_ERROR).
@@ -171,8 +171,8 @@ class antivirus_clamav_scanner_testcase extends advanced_testcase {
             'get_scanning_notice',
         );
         $antivirus = $this->getMockBuilder('\antivirus_clamav\scanner')
-                ->setMethods($methods)
-                ->getMock();
+            ->setMethods($methods)
+            ->getMock();
 
         // Configure scan_file_execute_commandline and scan_file_execute_unixsocket
         // method stubs to behave as if there is a scanning error (SCAN_RESULT_ERROR).
@@ -210,8 +210,8 @@ class antivirus_clamav_scanner_testcase extends advanced_testcase {
             'get_config',
         );
         $antivirus = $this->getMockBuilder('\antivirus_clamav\scanner')
-                ->setMethods($methods)
-                ->getMock();
+            ->setMethods($methods)
+            ->getMock();
         // Initiate mock scanning with configuration setting to use unixsocket.
         $configmap = array(array('runningmethod', 'unixsocket'));
         $antivirus->method('get_config')->will($this->returnValueMap($configmap));
@@ -234,8 +234,8 @@ class antivirus_clamav_scanner_testcase extends advanced_testcase {
             'get_config',
         );
         $antivirus = $this->getMockBuilder('\antivirus_clamav\scanner')
-                ->setMethods($methods)
-                ->getMock();
+            ->setMethods($methods)
+            ->getMock();
         // Initiate mock scanning with configuration setting to use unixsocket.
         $configmap = array(array('runningmethod', 'unixsocket'));
         $antivirus->method('get_config')->will($this->returnValueMap($configmap));
@@ -259,8 +259,8 @@ class antivirus_clamav_scanner_testcase extends advanced_testcase {
             'get_scanning_notice',
         );
         $antivirus = $this->getMockBuilder('\antivirus_clamav\scanner')
-                ->setMethods($methods)
-                ->getMock();
+            ->setMethods($methods)
+            ->getMock();
         // Initiate mock scanning with configuration setting to do nothing on
         // scanning error and using unixsocket.
         $configmap = array(array('clamfailureonupload', 'donothing'), array('runningmethod', 'unixsocket'));
@@ -286,8 +286,8 @@ class antivirus_clamav_scanner_testcase extends advanced_testcase {
             'get_scanning_notice',
         );
         $antivirus = $this->getMockBuilder('\antivirus_clamav\scanner')
-                ->setMethods($methods)
-                ->getMock();
+            ->setMethods($methods)
+            ->getMock();
 
         // Initiate mock scanning with configuration setting to act like virus on
         // scanning error and using unixsocket.
