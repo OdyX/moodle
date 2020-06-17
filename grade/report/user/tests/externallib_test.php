@@ -46,7 +46,7 @@ class gradereport_user_externallib_testcase extends externallib_advanced_testcas
      * @param  int $s2grade Student 2 grade
      * @return array          Course and users instances
      */
-    private function load_data($s1grade, $s2grade) {
+    private function load_data($s1grade, $s2grade, $s3grade) {
         global $DB;
 
         $course = $this->getDataGenerator()->create_course(array('groupmode' => SEPARATEGROUPS, 'groupmodeforce' => 1));
@@ -57,6 +57,10 @@ class gradereport_user_externallib_testcase extends externallib_advanced_testcas
 
         $student2 = $this->getDataGenerator()->create_user();
         $this->getDataGenerator()->enrol_user($student2->id, $course->id, $studentrole->id);
+
+        // Student 3 is in no groups.
+        $student3 = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student3->id, $course->id, $studentrole->id);
 
         $teacherrole = $DB->get_record('role', array('shortname' => 'teacher'));
         $teacher = $this->getDataGenerator()->create_user();
@@ -78,10 +82,11 @@ class gradereport_user_externallib_testcase extends externallib_advanced_testcas
 
         $student1grade = array('userid' => $student1->id, 'rawgrade' => $s1grade);
         $student2grade = array('userid' => $student2->id, 'rawgrade' => $s2grade);
-        $studentgrades = array($student1->id => $student1grade, $student2->id => $student2grade);
+        $student3grade = array('userid' => $student3->id, 'rawgrade' => $s3grade);
+        $studentgrades = array($student1->id => $student1grade, $student2->id => $student2grade, $student3->id => $student3grade);
         assign_grade_item_update($assignment, $studentgrades);
 
-        return array($course, $teacher, $student1, $student2, $assignment);
+        return array($course, $teacher, $student1, $student2, $student3, $assignment);
     }
 
     /**
@@ -93,8 +98,9 @@ class gradereport_user_externallib_testcase extends externallib_advanced_testcas
 
         $s1grade = 80;
         $s2grade = 60;
+        $s3grade = 50;
 
-        list($course, $teacher, $student1, $student2, $assignment) = $this->load_data($s1grade, $s2grade);
+        list($course, $teacher, $student1, $student2, $student3, $assignment) = $this->load_data($s1grade, $s2grade, $s3grade);
 
         // A teacher must see all student grades (in their group only).
         $this->setUser($teacher);
@@ -126,8 +132,9 @@ class gradereport_user_externallib_testcase extends externallib_advanced_testcas
 
         $s1grade = 80;
         $s2grade = 60;
+        $s3grade = 50;
 
-        list($course, $teacher, $student1, $student2, $assignment) = $this->load_data($s1grade, $s2grade);
+        list($course, $teacher, $student1, $student2, $student3, $assignment) = $this->load_data($s1grade, $s2grade, $s3grade);
 
         // A user can see his own grades.
         $this->setUser($student1);
@@ -141,6 +148,17 @@ class gradereport_user_externallib_testcase extends externallib_advanced_testcas
         $student1returnedgrade = (int) $studentgrade['tables'][0]['tabledata'][1]['grade']['content'];
         $this->assertEquals($s1grade, $student1returnedgrade);
 
+        // A user can see his own even when in no groups.
+        $this->setUser($student3);
+        $studentgrade = gradereport_user_external::get_grades_table($course->id, $student3->id);
+        $studentgrade = external_api::clean_returnvalue(gradereport_user_external::get_grades_table_returns(), $studentgrade);
+
+        // No warnings returned.
+        $this->assertTrue(count($studentgrade['warnings']) == 0);
+
+        $this->assertTrue(count($studentgrade['tables']) == 1);
+        $student3returnedgrade = (int) $studentgrade['tables'][0]['tabledata'][1]['grade']['content'];
+        $this->assertEquals($s3grade, $student3returnedgrade);
     }
 
     /**
@@ -153,8 +171,9 @@ class gradereport_user_externallib_testcase extends externallib_advanced_testcas
 
         $s1grade = 80;
         $s2grade = 60;
+        $s3grade = 50;
 
-        list($course, $teacher, $student1, $student2, $assignment) = $this->load_data($s1grade, $s2grade);
+        list($course, $teacher, $student1, $student2, $student3, $assignment) = $this->load_data($s1grade, $s2grade, $s3grade);
 
         $this->setUser($student2);
 
@@ -176,7 +195,8 @@ class gradereport_user_externallib_testcase extends externallib_advanced_testcas
 
         $s1grade = 80;
         $s2grade = 60;
-        list($course, $teacher, $student1, $student2, $assignment) = $this->load_data($s1grade, $s2grade);
+        $s3grade = 50;
+        list($course, $teacher, $student1, $student2, $student3, $assignment) = $this->load_data($s1grade, $s2grade, $s3grade);
 
         // Redirect events to the sink, so we can recover them later.
         $sink = $this->redirectEvents();
@@ -223,8 +243,9 @@ class gradereport_user_externallib_testcase extends externallib_advanced_testcas
 
         $s1grade = 80;
         $s2grade = 60;
+        $s3grade = 50;
 
-        list($course, $teacher, $student1, $student2, $assignment) = $this->load_data($s1grade, $s2grade);
+        list($course, $teacher, $student1, $student2, $student3, $assignment) = $this->load_data($s1grade, $s2grade, $s3grade);
 
         // A teacher must see all student grades (in their group only).
         $this->setUser($teacher);
@@ -274,8 +295,10 @@ class gradereport_user_externallib_testcase extends externallib_advanced_testcas
         $this->assertFalse($studentgrades['usergrades'][0]['gradeitems'][0]['gradeisoverridden']);
         $this->assertEquals('B-', $studentgrades['usergrades'][0]['gradeitems'][0]['lettergradeformatted']);
         $this->assertEquals(1, $studentgrades['usergrades'][0]['gradeitems'][0]['rank']);
-        $this->assertEquals(2, $studentgrades['usergrades'][0]['gradeitems'][0]['numusers']);
-        $this->assertEquals(70, $studentgrades['usergrades'][0]['gradeitems'][0]['averageformatted']);
+        $this->assertEquals(3, $studentgrades['usergrades'][0]['gradeitems'][0]['numusers']);
+        $this->assertEquals(
+            round(array_sum([$s1grade, $s2grade, $s3grade]) / 3, 2),
+            $studentgrades['usergrades'][0]['gradeitems'][0]['averageformatted']);
 
         // Course grades.
         $this->assertEquals('course', $studentgrades['usergrades'][0]['gradeitems'][1]['itemtype']);
@@ -294,8 +317,10 @@ class gradereport_user_externallib_testcase extends externallib_advanced_testcas
         $this->assertFalse($studentgrades['usergrades'][0]['gradeitems'][1]['gradeisoverridden']);
         $this->assertEquals('B-', $studentgrades['usergrades'][0]['gradeitems'][1]['lettergradeformatted']);
         $this->assertEquals(1, $studentgrades['usergrades'][0]['gradeitems'][1]['rank']);
-        $this->assertEquals(2, $studentgrades['usergrades'][0]['gradeitems'][1]['numusers']);
-        $this->assertEquals(70, $studentgrades['usergrades'][0]['gradeitems'][1]['averageformatted']);
+        $this->assertEquals(3, $studentgrades['usergrades'][0]['gradeitems'][1]['numusers']);
+        $this->assertEquals(
+            round(array_sum([$s1grade, $s2grade, $s3grade]) / 3, 2),
+            $studentgrades['usergrades'][0]['gradeitems'][1]['averageformatted']);
 
         // Now, override and lock a grade.
         $gradegrade = grade_grade::fetch(['itemid' => $studentgrades['usergrades'][0]['gradeitems'][0]['id'],
@@ -322,8 +347,9 @@ class gradereport_user_externallib_testcase extends externallib_advanced_testcas
 
         $s1grade = 80;
         $s2grade = 60;
+        $s3grade = 50;
 
-        list($course, $teacher, $student1, $student2, $assignment) = $this->load_data($s1grade, $s2grade);
+        list($course, $teacher, $student1, $student2, $student3, $assignment) = $this->load_data($s1grade, $s2grade, $s3grade);
 
         grade_set_setting($course->id, 'report_user_showrank', 1);
         grade_set_setting($course->id, 'report_user_showpercentage', 1);
@@ -370,8 +396,10 @@ class gradereport_user_externallib_testcase extends externallib_advanced_testcas
         $this->assertNull($studentgrades['usergrades'][0]['gradeitems'][0]['gradeisoverridden']);
         $this->assertEquals('B-', $studentgrades['usergrades'][0]['gradeitems'][0]['lettergradeformatted']);
         $this->assertEquals(1, $studentgrades['usergrades'][0]['gradeitems'][0]['rank']);
-        $this->assertEquals(2, $studentgrades['usergrades'][0]['gradeitems'][0]['numusers']);
-        $this->assertEquals(70, $studentgrades['usergrades'][0]['gradeitems'][0]['averageformatted']);
+        $this->assertEquals(3, $studentgrades['usergrades'][0]['gradeitems'][0]['numusers']);
+        $this->assertEquals(
+            round(array_sum([$s1grade, $s2grade, $s3grade]) / 3, 2),
+            $studentgrades['usergrades'][0]['gradeitems'][0]['averageformatted']);
 
         // Hide one grade for the user.
         $gradegrade = new grade_grade(array('userid' => $student1->id,
