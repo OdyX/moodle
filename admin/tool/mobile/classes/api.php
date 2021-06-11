@@ -374,7 +374,7 @@ class api {
     }
 
     /**
-     * Creates a QR login key for the current user, this key is restricted by time and ip address.
+     * Creates a QR login key for the current user, this key is restricted by time.
      * This key is used for automatically login the user in the site when the user scans a QR code in the Moodle app.
      *
      * @return string the key
@@ -386,9 +386,8 @@ class api {
         delete_user_key('tool_mobile', $USER->id);
 
         // Create a new key.
-        $iprestriction = getremoteaddr(null);
         $validuntil = time() + self::LOGIN_QR_KEY_TTL;
-        return create_user_key('tool_mobile', $USER->id, null, $iprestriction, $validuntil);
+        return create_user_key('tool_mobile', $USER->id, null, null, $validuntil);
     }
 
     /**
